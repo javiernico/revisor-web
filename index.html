@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisión previa de bases — SMAPA / DISAM Maipú</title>
+<style>
+  :root {
+    --tinta:#1f2937; --suave:#6b7280; --linea:#e5e7eb; --fondo:#f9fafb; --panel:#fff;
+    --acento:#1d4ed8;
+    --ok:#15803d; --ok-bg:#f0fdf4; --alerta:#b45309; --alerta-bg:#fffbeb;
+    --riesgo:#b91c1c; --riesgo-bg:#fef2f2; --info:#1d4ed8; --info-bg:#eff6ff;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--tinta); background:var(--fondo); }
+  header { background:var(--panel); border-bottom:1px solid var(--linea); padding:18px 24px; }
+  header h1 { margin:0 0 3px; font-size:19px; }
+  header p { margin:0; color:var(--suave); font-size:13px; }
+  main { max-width:920px; margin:0 auto; padding:24px; }
+  .panel { background:var(--panel); border:1px solid var(--linea); border-radius:10px; padding:18px 22px; margin-bottom:18px; }
+  h2 { font-size:15px; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--linea); }
+  h3.sub { font-size:14px; margin:18px 0 8px; }
+  .campo { margin:0 0 14px; }
+  .campo:last-child { margin-bottom:0; }
+  label.et { display:block; font-size:13px; font-weight:600; margin-bottom:4px; }
+  .ayuda { display:block; color:var(--suave); font-size:12px; margin-top:3px; }
+  input[type=text], input[type=number], input[type=date], input[type=time], select, textarea {
+    width:100%; padding:8px 10px; font:inherit; border:1px solid var(--linea); border-radius:6px; background:var(--fondo);
+  }
+  textarea { resize:vertical; }
+  textarea.doc { min-height:120px; font-size:13px; line-height:1.4; }
+  .multi label { display:block; font-size:13px; font-weight:400; margin:3px 0; }
+  .multi input { margin-right:7px; }
+  table.cr { width:100%; border-collapse:collapse; font-size:13px; }
+  table.cr th, table.cr td { border:1px solid var(--linea); padding:5px 6px; text-align:left; }
+  table.cr th { background:var(--fondo); font-weight:600; }
+  table.cr input[type=number] { padding:5px 6px; width:70px; }
+  table.cr .chk { text-align:center; }
+  .cr-suma { font-size:12px; color:var(--suave); margin-top:6px; }
+  .cr-suma.mal { color:var(--riesgo); font-weight:600; }
+  button { padding:9px 16px; font:inherit; font-weight:600; border-radius:6px; cursor:pointer; border:1px solid var(--linea); background:var(--panel); color:var(--tinta); }
+  button.primario { background:var(--acento); border-color:var(--acento); color:#fff; }
+  button.mini { padding:3px 8px; font-weight:400; font-size:12px; }
+  .barra { display:flex; flex-wrap:wrap; gap:10px; }
+  .nota { color:var(--suave); font-size:13px; }
+  code { background:var(--fondo); padding:1px 5px; border-radius:4px; font-size:12px; }
+
+  #informe { scroll-margin-top:16px; }
+  .semaforo { border-radius:10px; padding:16px 20px; font-weight:700; font-size:16px; margin-bottom:16px; border:1px solid; }
+  .semaforo.ok { background:var(--ok-bg); color:var(--ok); border-color:var(--ok); }
+  .semaforo.alerta { background:var(--alerta-bg); color:var(--alerta); border-color:var(--alerta); }
+  .semaforo.riesgo { background:var(--riesgo-bg); color:var(--riesgo); border-color:var(--riesgo); }
+  .semaforo.info { background:var(--info-bg); color:var(--info); border-color:var(--info); }
+  .semaforo small { display:block; font-weight:400; font-size:13px; margin-top:4px; }
+  .hallazgo { border:1px solid var(--linea); border-left-width:5px; border-radius:8px; padding:12px 16px; margin-bottom:12px; }
+  .hallazgo.alto { border-left-color:var(--riesgo); }
+  .hallazgo.medio { border-left-color:var(--alerta); }
+  .hallazgo.informativo { border-left-color:var(--info); }
+  .hallazgo h3 { margin:0 0 6px; font-size:14px; }
+  .hallazgo .tag { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; margin-right:8px; vertical-align:middle; }
+  .tag.alto { background:var(--riesgo-bg); color:var(--riesgo); }
+  .tag.medio { background:var(--alerta-bg); color:var(--alerta); }
+  .tag.informativo { background:var(--info-bg); color:var(--info); }
+  .hallazgo dl { margin:6px 0 0; font-size:13px; }
+  .hallazgo dt { font-weight:600; color:var(--suave); margin-top:6px; font-size:12px; text-transform:uppercase; letter-spacing:.02em; }
+  .hallazgo dd { margin:2px 0 0; }
+  .hallazgo .cita { background:var(--fondo); border-left:3px solid var(--linea); padding:6px 10px; font-size:12px; font-style:italic; color:#374151; }
+  details.no-eval, details.tools { margin-top:14px; font-size:13px; color:var(--suave); }
+  details.no-eval li { margin:3px 0; }
+  .placeholder { color:var(--suave); font-size:14px; }
+  @media (min-width:820px) { .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; } }
+  @media print {
+    .no-print { display:none !important; }
+    body { background:#fff; } main { max-width:none; padding:0; }
+    .panel { border:none; padding:0; } #informe { margin-top:0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Revisión previa de bases de licitación</h1>
+  <p>SMAPA / DISAM — I. Municipalidad de Maipú · Proyecto A+S AIEP · Antes de publicar en Mercado Público</p>
+</header>
+
+<main>
+  <div class="panel no-print">
+    <h2>Cómo se usa</h2>
+    <p class="nota">
+      Antes de publicar la licitación: escribe su número, <strong>carga los PDF de las bases</strong>
+      (administrativas, técnicas, económicas y las que tengas) y pulsa <strong>Analizar con IA</strong>.
+      La app envía los documentos a un modelo de IA que los lee, extrae los datos y devuelve un informe
+      con las posibles causas de que la licitación quede desierta y las recomendaciones para corregirlas.
+    </p>
+    <p class="nota">
+      No reemplaza la lectura completa de las bases ni la revisión jurídica. Requiere conexión a internet
+      y una <em>clave de API</em>. Puedes usar <strong>Anthropic (Claude)</strong> — de pago, centavos de
+      dólar por análisis — o <strong>Google (Gemini)</strong>, que tiene un nivel gratuito: la clave se
+      obtiene sin tarjeta en <code>aistudio.google.com/apikey</code> (hay un límite de solicitudes por
+      minuto y por día).
+    </p>
+  </div>
+
+  <div class="panel no-print">
+    <h2>1. Identificación</h2>
+    <div class="campo">
+      <label class="et" for="id_licitacion">Número de la licitación (o nombre del borrador)</label>
+      <input type="text" id="id_licitacion" placeholder="Ej: 2770-90-LP26 — Servicio de ...">
+    </div>
+  </div>
+
+  <div class="panel no-print">
+    <h2>2. Análisis con IA</h2>
+    <div class="grid2">
+      <div class="campo">
+        <label class="et" for="ia_proveedor">Proveedor de IA</label>
+        <select id="ia_proveedor">
+          <option value="google">Google — Gemini (tiene nivel gratuito)</option>
+          <option value="anthropic">Anthropic — Claude (de pago)</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label class="et" for="ia_modelo">Modelo</label>
+        <select id="ia_modelo"></select>
+      </div>
+      <div class="campo" style="grid-column:1 / -1;">
+        <label class="et" for="ia_modelo_otro">Otro modelo (opcional)</label>
+        <input type="text" id="ia_modelo_otro" placeholder="Ej: gemini-3.6-flash">
+        <span class="ayuda">Si escribes algo aquí, se usa en vez del de arriba. Útil si el proveedor cambió los nombres de modelo y el de la lista da error.</span>
+        <div class="barra" style="margin-top:6px;">
+          <button type="button" class="mini" id="btn-ia-modelos">Ver modelos disponibles para mi clave</button>
+        </div>
+        <div id="ia_modelos_lista" class="nota" style="margin-top:6px;"></div>
+      </div>
+      <div class="campo" style="grid-column:1 / -1;">
+        <label class="et" for="ia_key"><span id="ia_key_label">Clave de API de Google</span></label>
+        <input type="password" id="ia_key" placeholder="AIza...">
+        <span class="ayuda" id="ia_key_ayuda">Se guarda solo en este navegador. No publiques la app con la clave dentro.</span>
+      </div>
+    </div>
+    <div class="campo">
+      <label class="et" for="ia_files">Archivos de las bases (PDF)</label>
+      <input type="file" id="ia_files" accept="application/pdf,.pdf" multiple>
+      <span class="ayuda">Selecciona todos: bases administrativas, técnicas, anexos económicos, respuestas a consultas, decretos. Máx. ~20 MB en total.</span>
+      <div id="ia_lista" class="nota" style="margin-top:6px;"></div>
+    </div>
+    <div class="campo">
+      <label class="et" for="ia_contexto">Contexto adicional (opcional)</label>
+      <textarea id="ia_contexto" style="min-height:60px;" placeholder="Datos que no están en los PDF: fecha planificada de publicación y de cierre, si se hizo consulta al mercado, nº de ítems del itemizado en Excel, etc."></textarea>
+    </div>
+    <div class="barra">
+      <button type="button" class="primario" id="btn-ia">Analizar con IA</button>
+      <span class="nota" id="ia_estado"></span>
+    </div>
+  </div>
+
+  <details class="tools no-print">
+    <summary>Modo sin IA (pegar texto y formulario)</summary>
+    <div style="margin-top:12px;">
+      <div class="panel">
+        <h2>Texto de los documentos</h2>
+        <p class="nota">Alternativa sin internet: pega el texto del borrador. Si un documento no está listo, déjalo en blanco.</p>
+        <div id="docs"></div>
+      </div>
+      <div class="panel">
+        <h2>Datos que no están en el texto</h2>
+        <p class="nota">Completa lo que sepas. Lo que dejes en blanco no se evalúa.</p>
+        <form id="formulario"></form>
+      </div>
+      <div class="panel" style="text-align:center;">
+        <button type="button" class="primario" id="btn-generar">Generar informe (sin IA)</button>
+      </div>
+    </div>
+  </details>
+
+  <div class="panel" id="informe">
+    <h2 class="no-print">Informe</h2>
+    <p class="placeholder" id="informe-vacio">Aún no se ha generado el informe.</p>
+    <div id="informe-contenido" hidden></div>
+    <div class="barra no-print" id="barra-informe" hidden style="margin-top:6px;">
+      <button type="button" id="btn-imprimir">Imprimir / Guardar PDF</button>
+      <button type="button" id="btn-ia-descargar" hidden>Descargar informe (.json + .txt)</button>
+      <button type="button" id="btn-limpiar">Limpiar todo</button>
+    </div>
+  </div>
+
+  <details class="tools no-print">
+    <summary>Herramientas del proyecto (validación con casos históricos)</summary>
+    <div class="panel" style="margin-top:12px;">
+      <p class="nota">Para el equipo del proyecto: guardar licitaciones ya cerradas y verificar que el revisor las clasifica bien. No es parte del uso diario.</p>
+      <div class="campo">
+        <label class="et" for="caso-nombre">Guardar el formulario actual como:</label>
+        <div class="barra" style="margin:0;">
+          <input type="text" id="caso-nombre" placeholder="Ej: 2770-73-LP26" style="max-width:260px;">
+          <button type="button" id="btn-guardar-caso">Guardar caso</button>
+        </div>
+      </div>
+      <div class="campo">
+        <label class="et" for="caso-lista">Casos guardados:</label>
+        <div class="barra" style="margin:0;">
+          <select id="caso-lista" style="max-width:260px;"></select>
+          <button type="button" id="btn-cargar-caso">Cargar</button>
+          <button type="button" id="btn-eliminar-caso">Eliminar</button>
+        </div>
+      </div>
+      <div class="barra" style="margin-top:10px;">
+        <button type="button" id="btn-revisar-todos">Revisar todos</button>
+        <button type="button" id="btn-exportar">Exportar casos (JSON)</button>
+        <button type="button" id="btn-importar" onclick="document.getElementById('imp-file').click()">Importar casos (JSON)</button>
+        <input type="file" id="imp-file" accept="application/json,.json" hidden>
+      </div>
+    </div>
+  </details>
+</main>
+
+<script src="reglas.js"></script>
+<script>
+(function () {
+  "use strict";
+  var STORE_FORM = "revisor_form_v2";
+  var STORE_DOCS = "revisor_docs_v2";
+  var STORE_ID = "revisor_id_v2";
+  var CASOS_STORE = "revisor_casos_v1";
+
+  /* ---------- documentos (textareas) ---------- */
+  var docsBox = document.getElementById("docs");
+  REGLAS.documentos.forEach(function (d) {
+    var w = document.createElement("div");
+    w.className = "campo";
+    var l = document.createElement("label");
+    l.className = "et"; l.setAttribute("for", "doc_" + d.id); l.textContent = d.etiqueta;
+    var ta = document.createElement("textarea");
+    ta.className = "doc"; ta.id = "doc_" + d.id;
+    ta.placeholder = "Pega aquí el texto de " + d.etiqueta + "...";
+    w.appendChild(l); w.appendChild(ta);
+    docsBox.appendChild(w);
+  });
+
+  /* ---------- formulario (a partir de REGLAS.secciones) ---------- */
+  var form = document.getElementById("formulario");
+  REGLAS.secciones.forEach(function (sec) {
+    var h = document.createElement("h3");
+    h.className = "sub"; h.textContent = sec.titulo;
+    form.appendChild(h);
+    var grid = document.createElement("div");
+    grid.className = "grid2";
+    form.appendChild(grid);
+    sec.campos.forEach(function (c) { grid.appendChild(campoHTML(c)); });
+  });
+
+  function campoHTML(c) {
+    var wrap = document.createElement("div");
+    wrap.className = "campo";
+    if (c.tipo === "texto_largo" || c.tipo === "criterios" || c.tipo === "multiseleccion") wrap.style.gridColumn = "1 / -1";
+    var lab = document.createElement("label");
+    lab.className = "et"; lab.textContent = c.etiqueta;
+    wrap.appendChild(lab);
+    var el;
+    if (c.tipo === "select") {
+      el = document.createElement("select");
+      c.opciones.forEach(function (o) { var op = document.createElement("option"); op.value = o; op.textContent = o === "" ? "— seleccionar —" : o; el.appendChild(op); });
+    } else if (c.tipo === "booleano") {
+      el = document.createElement("select");
+      [["", "— sin dato —"], ["si", "Sí"], ["no", "No"]].forEach(function (o) { var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; el.appendChild(op); });
+    } else if (c.tipo === "texto_largo") { el = document.createElement("textarea");
+    } else if (c.tipo === "numero") { el = document.createElement("input"); el.type = "number"; el.step = "any";
+    } else if (c.tipo === "fecha") { el = document.createElement("input"); el.type = "date";
+    } else if (c.tipo === "hora") { el = document.createElement("input"); el.type = "time";
+    } else if (c.tipo === "multiseleccion") {
+      el = document.createElement("div"); el.className = "multi";
+      c.opciones.forEach(function (o) {
+        var l = document.createElement("label");
+        var cb = document.createElement("input"); cb.type = "checkbox"; cb.value = o; cb.setAttribute("data-campo", c.id);
+        l.appendChild(cb); l.appendChild(document.createTextNode(o)); el.appendChild(l);
+      });
+    } else if (c.tipo === "criterios") { el = criteriosWidget();
+    } else { el = document.createElement("input"); el.type = "text"; }
+    if (c.tipo !== "multiseleccion" && c.tipo !== "criterios") { el.id = "f_" + c.id; lab.setAttribute("for", el.id); }
+    wrap.appendChild(el);
+    if (c.ayuda) { var a = document.createElement("span"); a.className = "ayuda"; a.textContent = c.ayuda; wrap.appendChild(a); }
+    return wrap;
+  }
+
+  /* ---------- widget de criterios ---------- */
+  function criteriosWidget() {
+    var box = document.createElement("div");
+    var tbl = document.createElement("table"); tbl.className = "cr";
+    tbl.innerHTML = "<thead><tr><th>Criterio</th><th>Pond. %</th><th class='chk'>Es precio</th><th class='chk'>Binario</th><th class='chk'>Rúbrica</th><th></th></tr></thead><tbody id='criterios_rows'></tbody>";
+    box.appendChild(tbl);
+    var suma = document.createElement("div"); suma.className = "cr-suma"; suma.id = "criterios_suma"; box.appendChild(suma);
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "mini"; add.textContent = "+ Agregar criterio"; add.style.marginTop = "8px";
+    add.addEventListener("click", function () { addCriterioRow({}); });
+    box.appendChild(add);
+    return box;
+  }
+  function addCriterioRow(d) {
+    var tb = document.getElementById("criterios_rows");
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td><input type='text' class='cr-nombre'></td><td><input type='number' step='any' class='cr-pond'></td>" +
+      "<td class='chk'><input type='checkbox' class='cr-precio'></td><td class='chk'><input type='checkbox' class='cr-bin'></td>" +
+      "<td class='chk'><input type='checkbox' class='cr-rub'></td><td class='chk'><button type='button' class='mini cr-del'>x</button></td>";
+    tb.appendChild(tr);
+    tr.querySelector(".cr-nombre").value = d.nombre || "";
+    tr.querySelector(".cr-pond").value = d.ponderacion_pct != null ? d.ponderacion_pct : "";
+    tr.querySelector(".cr-precio").checked = !!d.es_precio;
+    tr.querySelector(".cr-bin").checked = !!d.es_binario;
+    tr.querySelector(".cr-rub").checked = !!d.tiene_rubrica;
+    tr.querySelector(".cr-del").addEventListener("click", function () { tr.remove(); sumaCriterios(); });
+    tr.querySelector(".cr-pond").addEventListener("input", sumaCriterios);
+    sumaCriterios();
+  }
+  function leerCriterios() {
+    return [].slice.call(document.querySelectorAll("#criterios_rows tr")).map(function (tr) {
+      return {
+        nombre: tr.querySelector(".cr-nombre").value.trim(),
+        ponderacion_pct: tr.querySelector(".cr-pond").value,
+        es_precio: tr.querySelector(".cr-precio").checked,
+        es_binario: tr.querySelector(".cr-bin").checked,
+        tiene_rubrica: tr.querySelector(".cr-rub").checked
+      };
+    }).filter(function (c) { return c.nombre || c.ponderacion_pct; });
+  }
+  function setCriterios(arr) {
+    document.getElementById("criterios_rows").innerHTML = "";
+    (arr && arr.length ? arr : [{}]).forEach(addCriterioRow);
+  }
+  function sumaCriterios() {
+    var s = leerCriterios().reduce(function (a, c) { return a + (Number(c.ponderacion_pct) || 0); }, 0);
+    var el = document.getElementById("criterios_suma");
+    el.textContent = "Suma de ponderaciones: " + s + "%";
+    el.className = "cr-suma" + (leerCriterios().length && Math.abs(s - 100) > 0.01 ? " mal" : "");
+  }
+
+  /* ---------- leer / aplicar ---------- */
+  function leerValores() {
+    var v = {};
+    REGLAS.secciones.forEach(function (sec) {
+      sec.campos.forEach(function (c) {
+        if (c.tipo === "criterios") { v[c.id] = leerCriterios(); }
+        else if (c.tipo === "multiseleccion") {
+          v[c.id] = [].slice.call(document.querySelectorAll("input[data-campo='" + c.id + "']:checked")).map(function (x) { return x.value; });
+        } else { var el = document.getElementById("f_" + c.id); v[c.id] = el ? el.value : ""; }
+      });
+    });
+    return v;
+  }
+  function aplicarValores(v) {
+    v = v || {};
+    REGLAS.secciones.forEach(function (sec) {
+      sec.campos.forEach(function (c) {
+        if (c.tipo === "criterios") { setCriterios(v[c.id] || []); }
+        else if (c.tipo === "multiseleccion") {
+          var arr = v[c.id] || [];
+          document.querySelectorAll("input[data-campo='" + c.id + "']").forEach(function (x) { x.checked = arr.indexOf(x.value) >= 0; });
+        } else { var el = document.getElementById("f_" + c.id); if (el) el.value = (v[c.id] != null ? v[c.id] : ""); }
+      });
+    });
+  }
+  function leerDocs() {
+    var m = {};
+    REGLAS.documentos.forEach(function (d) { var el = document.getElementById("doc_" + d.id); m[d.id] = el ? el.value : ""; });
+    return m;
+  }
+  function aplicarDocs(m) {
+    m = m || {};
+    REGLAS.documentos.forEach(function (d) { var el = document.getElementById("doc_" + d.id); if (el) el.value = m[d.id] || ""; });
+  }
+  function guardarTodo() {
+    try {
+      localStorage.setItem(STORE_FORM, JSON.stringify(leerValores()));
+      localStorage.setItem(STORE_DOCS, JSON.stringify(leerDocs()));
+      localStorage.setItem(STORE_ID, document.getElementById("id_licitacion").value || "");
+    } catch (e) {}
+  }
+  function leerJSON(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+
+  /* ---------- casos guardados ---------- */
+  function getCasos() { try { return JSON.parse(localStorage.getItem(CASOS_STORE) || "{}"); } catch (e) { return {}; } }
+  function setCasos(o) { try { localStorage.setItem(CASOS_STORE, JSON.stringify(o)); } catch (e) {} }
+  function refrescarLista() {
+    var sel = document.getElementById("caso-lista");
+    var nombres = Object.keys(getCasos()).sort();
+    sel.innerHTML = nombres.length ? nombres.map(function (n) { return "<option>" + esc(n) + "</option>"; }).join("") : "<option value=''>(sin casos)</option>";
+  }
+
+  /* ---------- detectores de texto ---------- */
+  function extracto(t, idx, len) {
+    var a = Math.max(0, idx - 90), b = Math.min(t.length, idx + len + 90);
+    return (a > 0 ? "..." : "") + t.slice(a, b).replace(/\s+/g, " ").trim() + (b < t.length ? "..." : "");
+  }
+  function correrDetectores(docs) {
+    var res = {};
+    REGLAS.detectores.forEach(function (det) {
+      var evid = null, matchedPatrones = 0;
+      det.patrones.forEach(function (p) {
+        var got = false;
+        REGLAS.documentos.forEach(function (d) {
+          var t = docs[d.id] || "";
+          if (!t) return;
+          var mm = t.match(p);
+          if (mm) { got = true; if (!evid) evid = { doc: d.etiqueta, txt: extracto(t, mm.index, mm[0].length) }; }
+        });
+        if (got) matchedPatrones++;
+      });
+      var ok = det.todos ? (matchedPatrones >= det.patrones.length) : (matchedPatrones > 0);
+      if (ok && evid) res[det.regla] = { evidencia: evid.txt, doc: evid.doc, nombre: det.nombre };
+    });
+    return res;
+  }
+
+  /* ---------- motor ---------- */
+  function evaluarCaso(v) {
+    var hallazgos = [], manuales = [], noEval = [];
+    REGLAS.lista.forEach(function (r) {
+      if (r.manual) { manuales.push(r); return; }
+      var res; try { res = r.evaluar(v); } catch (e) { res = null; }
+      if (res === true) { hallazgos.push(merge(r, { nivelResuelto: r.nivelDinamico ? r.nivelDinamico(v) : r.nivel })); }
+      else if (res === null) { noEval.push(r); }
+    });
+    return { hallazgos: hallazgos, manuales: manuales, noEval: noEval };
+  }
+  function reglaPorId(id) { for (var i = 0; i < REGLAS.lista.length; i++) if (REGLAS.lista[i].id === id) return REGLAS.lista[i]; return null; }
+
+  function generar() {
+    guardarTodo();
+    var v = leerValores();
+    var docs = leerDocs();
+    var hayTexto = REGLAS.documentos.some(function (d) { return (docs[d.id] || "").trim().length > 30; });
+    var det = correrDetectores(docs);
+
+    var hallazgos = [], manuales = [], noEval = [], vistos = {};
+
+    Object.keys(det).forEach(function (rid) {
+      var r = reglaPorId(rid); if (!r) return;
+      hallazgos.push(merge(r, {
+        nivelResuelto: r.nivelDinamico ? r.nivelDinamico(v) : r.nivel,
+        evidencia: det[rid].evidencia, evidenciaDoc: det[rid].doc
+      }));
+      vistos[rid] = true;
+    });
+    REGLAS.lista.forEach(function (r) {
+      if (vistos[r.id]) return;
+      if (r.manual) { manuales.push(r); return; }
+      var res; try { res = r.evaluar(v); } catch (e) { res = null; }
+      if (res === true) { hallazgos.push(merge(r, { nivelResuelto: r.nivelDinamico ? r.nivelDinamico(v) : r.nivel })); }
+      else if (res === null) { noEval.push(r); }
+    });
+
+    render(hallazgos, manuales, noEval, hayTexto);
+    document.getElementById("informe").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function merge(a, b) { var o = {}; for (var k in a) o[k] = a[k]; for (var k2 in b) o[k2] = b[k2]; return o; }
+
+  function semaforo(h) {
+    var n = h.map(function (x) { return x.nivelResuelto; });
+    if (n.indexOf("alto") >= 0) return { clase: "riesgo", txt: "Riesgo alto de quedar desierta" };
+    if (n.indexOf("medio") >= 0) return { clase: "alerta", txt: "Riesgo medio: hay aspectos que conviene corregir antes de publicar" };
+    if (n.indexOf("informativo") >= 0) return { clase: "info", txt: "Riesgo bajo: solo observaciones informativas" };
+    return { clase: "ok", txt: "Sin observaciones de las reglas revisadas" };
+  }
+  var ORDEN = { alto: 0, medio: 1, informativo: 2 };
+
+  function render(hallazgos, manuales, noEval, hayTexto) {
+    document.getElementById("informe-vacio").hidden = true;
+    var cont = document.getElementById("informe-contenido");
+    cont.hidden = false;
+    document.getElementById("barra-informe").hidden = false;
+    document.getElementById("btn-ia-descargar").hidden = true;
+
+    hallazgos.sort(function (a, b) { return ORDEN[a.nivelResuelto] - ORDEN[b.nivelResuelto]; });
+    var sem = semaforo(hallazgos);
+    var cuenta = { alto: 0, medio: 0, informativo: 0 };
+    hallazgos.forEach(function (h) { cuenta[h.nivelResuelto]++; });
+
+    var idLic = esc(document.getElementById("id_licitacion").value || "(sin número)");
+    var html = "<p class='nota'><strong>Licitación:</strong> " + idLic + "</p>";
+    html += "<div class='semaforo " + sem.clase + "'>" + esc(sem.txt) +
+      "<small>Generado: " + new Date().toLocaleString("es-CL") +
+      " · Posibles causas: " + cuenta.alto + " alta(s), " + cuenta.medio + " media(s), " + cuenta.informativo + " informativa(s)</small></div>";
+
+    if (!hayTexto) html += "<p class='nota'>No se pegó texto de las bases. El informe se basa solo en el formulario; los detectores de cláusulas no se aplicaron.</p>";
+    if (!hallazgos.length) html += "<p class='nota'>Ninguna regla detectó problemas. Revisa igualmente los puntos de revisión manual y las reglas sin datos.</p>";
+
+    hallazgos.forEach(function (h) {
+      html += "<div class='hallazgo " + h.nivelResuelto + "'>" +
+        "<h3><span class='tag " + h.nivelResuelto + "'>" + h.nivelResuelto.toUpperCase() + "</span>" + esc(h.id) + " · " + esc(h.titulo) + "</h3><dl>" +
+        "<dt>Posible causa de deserción</dt><dd>" + esc(h.descripcion) + "</dd>" +
+        (h.evidencia ? "<dt>Detectado en el texto (" + esc(h.evidenciaDoc) + ")</dt><dd class='cita'>" + esc(h.evidencia) + "</dd>" : "") +
+        "<dt>Norma / fundamento</dt><dd>" + esc(h.norma) + "</dd>" +
+        "<dt>Recomendación</dt><dd>" + esc(h.recomendacion) + "</dd>" +
+        (h.origen ? "<dt>Origen</dt><dd>" + esc(h.origen) + "</dd>" : "") + "</dl></div>";
+    });
+
+    if (manuales.length) {
+      html += "<h3 class='sub'>Revisión manual recomendada</h3>";
+      manuales.forEach(function (r) {
+        html += "<div class='hallazgo informativo'><h3><span class='tag informativo'>MANUAL</span>" + esc(r.id) + " · " + esc(r.titulo) + "</h3>" +
+          "<dl><dt>Qué revisar</dt><dd>" + esc(r.descripcion) + "</dd><dt>Recomendación</dt><dd>" + esc(r.recomendacion) + "</dd></dl></div>";
+      });
+    }
+    if (noEval.length) {
+      html += "<details class='no-eval'><summary>" + noEval.length + " regla(s) no evaluada(s) por falta de datos</summary><ul>";
+      noEval.forEach(function (r) { html += "<li>" + esc(r.id) + " · " + esc(r.titulo) + "</li>"; });
+      html += "</ul></details>";
+    }
+    cont.innerHTML = html;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  /* ---------- eventos ---------- */
+  document.getElementById("btn-generar").addEventListener("click", generar);
+  document.getElementById("btn-imprimir").addEventListener("click", function () { window.print(); });
+  document.getElementById("btn-limpiar").addEventListener("click", function () {
+    if (!confirm("¿Borrar el número, el texto pegado y el formulario?")) return;
+    document.getElementById("id_licitacion").value = "";
+    aplicarDocs({}); aplicarValores({}); setCriterios([]); sumaCriterios();
+    try { localStorage.removeItem(STORE_FORM); localStorage.removeItem(STORE_DOCS); localStorage.removeItem(STORE_ID); } catch (e) {}
+    document.getElementById("informe-vacio").hidden = false;
+    document.getElementById("informe-contenido").hidden = true;
+    document.getElementById("barra-informe").hidden = true;
+    document.getElementById("btn-ia-descargar").hidden = true;
+    ULTIMO_IA = null;
+  });
+
+  document.getElementById("btn-guardar-caso").addEventListener("click", function () {
+    var nom = document.getElementById("caso-nombre").value.trim();
+    if (!nom) { alert("Escribe un nombre."); return; }
+    var o = getCasos(); o[nom] = leerValores(); setCasos(o); refrescarLista();
+    document.getElementById("caso-lista").value = nom; alert("Caso \"" + nom + "\" guardado.");
+  });
+  document.getElementById("btn-cargar-caso").addEventListener("click", function () {
+    var nom = document.getElementById("caso-lista").value, o = getCasos();
+    if (!nom || !o[nom]) { alert("Elige un caso."); return; }
+    aplicarValores(o[nom]); sumaCriterios(); document.getElementById("caso-nombre").value = nom;
+  });
+  document.getElementById("btn-eliminar-caso").addEventListener("click", function () {
+    var nom = document.getElementById("caso-lista").value, o = getCasos();
+    if (!nom || !o[nom]) return;
+    if (!confirm("¿Eliminar \"" + nom + "\"?")) return;
+    delete o[nom]; setCasos(o); refrescarLista();
+  });
+  document.getElementById("btn-revisar-todos").addEventListener("click", function () {
+    var o = getCasos(), nombres = Object.keys(o).sort();
+    if (!nombres.length) { alert("No hay casos guardados."); return; }
+    var filas = nombres.map(function (n) {
+      var r = evaluarCaso(o[n]); var c = { alto: 0, medio: 0, informativo: 0 };
+      r.hallazgos.forEach(function (h) { c[h.nivelResuelto]++; });
+      return { n: n, sem: semaforo(r.hallazgos), c: c, ne: r.noEval.length };
+    });
+    document.getElementById("informe-vacio").hidden = true;
+    var cont = document.getElementById("informe-contenido"); cont.hidden = false;
+    document.getElementById("barra-informe").hidden = false;
+    var html = "<h3 class='sub'>Resumen de " + filas.length + " caso(s) guardado(s)</h3>";
+    html += "<table class='cr'><thead><tr><th>Caso</th><th>Resultado</th><th class='chk'>Alto</th><th class='chk'>Medio</th><th class='chk'>Info</th><th class='chk'>Sin datos</th></tr></thead><tbody>";
+    filas.forEach(function (f) {
+      html += "<tr><td>" + esc(f.n) + "</td><td>" + esc(f.sem.txt) + "</td><td class='chk'>" + f.c.alto + "</td><td class='chk'>" + f.c.medio + "</td><td class='chk'>" + f.c.informativo + "</td><td class='chk'>" + f.ne + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    cont.innerHTML = html;
+    document.getElementById("informe").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.getElementById("btn-exportar").addEventListener("click", function () {
+    var blob = new Blob([JSON.stringify(getCasos(), null, 2)], { type: "application/json" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "casos-revisor.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById("imp-file").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var imp = JSON.parse(rd.result), o = getCasos();
+        Object.keys(imp).forEach(function (k) { o[k] = imp[k]; });
+        setCasos(o); refrescarLista(); alert("Importados " + Object.keys(imp).length + " caso(s).");
+      } catch (err) { alert("El archivo no es un JSON válido de casos."); }
+    };
+    rd.readAsText(f); e.target.value = "";
+  });
+
+  /* ================= ANÁLISIS CON IA ================= */
+  var IA_PROV_STORE = "revisor_ia_prov_v1";
+  var IA_KEY_STORE = "revisor_ia_key_v1";        // clave del proveedor Anthropic (compat. versiones previas)
+  var IA_KEY_GOOGLE_STORE = "revisor_ia_key_google_v1";
+  var IA_MODELO_STORE = "revisor_ia_modelo_v1";  // objeto { anthropic:"...", google:"..." }
+  var IA_MODELO_OTRO_STORE = "revisor_ia_modelo_otro_v1";
+
+  function modeloElegido() {
+    var otro = (document.getElementById("ia_modelo_otro").value || "").trim();
+    return otro || document.getElementById("ia_modelo").value;
+  }
+
+  var PROVEEDORES = {
+    google: {
+      nombre: "Google (Gemini)",
+      keyLabel: "Clave de API de Google (Gemini)",
+      keyPlaceholder: "AIza...",
+      keyAyuda: "Se obtiene gratis y sin tarjeta en aistudio.google.com/apikey. Se guarda solo en este navegador; no publiques la app con la clave dentro.",
+      keyStore: IA_KEY_GOOGLE_STORE,
+      host: "generativelanguage.googleapis.com",
+      modelos: [
+        ["gemini-3.6-flash", "Gemini 3.6 Flash (recomendado, gratis)"],
+        ["gemini-flash-latest", "Gemini Flash (última versión)"],
+        ["gemini-2.5-flash", "Gemini 2.5 Flash (solo cuentas antiguas)"]
+      ]
+    },
+    anthropic: {
+      nombre: "Anthropic (Claude)",
+      keyLabel: "Clave de API de Anthropic",
+      keyPlaceholder: "sk-ant-...",
+      keyAyuda: "Requiere saldo en console.anthropic.com (de pago). Se guarda solo en este navegador; no publiques la app con la clave dentro.",
+      keyStore: IA_KEY_STORE,
+      host: "api.anthropic.com",
+      modelos: [
+        ["claude-opus-5", "Claude Opus 5 (mejor análisis, mayor costo)"],
+        ["claude-sonnet-5", "Claude Sonnet 5 (equilibrado)"],
+        ["claude-haiku-4-5", "Claude Haiku 4.5 (más económico)"]
+      ]
+    }
+  };
+
+  function iaProveedor() {
+    var p = document.getElementById("ia_proveedor").value;
+    return PROVEEDORES[p] ? p : "google";
+  }
+  function leerModelosGuardados() {
+    try {
+      var r = JSON.parse(localStorage.getItem(IA_MODELO_STORE) || "{}");
+      return (r && typeof r === "object") ? r : {};
+    } catch (e) { return {}; }
+  }
+  function guardarModeloProveedor(prov, modelo) {
+    var o = leerModelosGuardados(); o[prov] = modelo;
+    try { localStorage.setItem(IA_MODELO_STORE, JSON.stringify(o)); } catch (e) {}
+  }
+  function aplicarProveedor() {
+    var prov = iaProveedor();
+    var cfg = PROVEEDORES[prov];
+    var selM = document.getElementById("ia_modelo");
+    var guardado = leerModelosGuardados()[prov];
+    selM.innerHTML = "";
+    cfg.modelos.forEach(function (m) {
+      var op = document.createElement("option");
+      op.value = m[0]; op.textContent = m[1];
+      selM.appendChild(op);
+    });
+    if (guardado && cfg.modelos.some(function (m) { return m[0] === guardado; })) selM.value = guardado;
+    document.getElementById("ia_key_label").textContent = cfg.keyLabel;
+    document.getElementById("ia_key").placeholder = cfg.keyPlaceholder;
+    document.getElementById("ia_key_ayuda").textContent = cfg.keyAyuda;
+    var kEl = document.getElementById("ia_key");
+    try { kEl.value = localStorage.getItem(cfg.keyStore) || ""; } catch (e) { kEl.value = ""; }
+  }
+
+  var SYS_IA = [
+    "Eres un revisor experto en compras publicas de Chile. Tu tarea es leer el borrador de las bases de una",
+    "licitacion publica ANTES de que se publique en Mercado Publico y detectar todo lo que podria hacer que",
+    "la licitacion quede DESIERTA (que no se presenten ofertas, o que todas las ofertas queden inadmisibles).",
+    "Marco normativo: Ley 19.886, su Reglamento (Decreto Supremo 661 de 2024, Hacienda) y la Ley 18.695.",
+    "",
+    "Revisa al menos estas familias de riesgo (agrega otras que detectes):",
+    "1. PLAZOS: plazo entre publicacion y cierre bajo el minimo del tipo de licitacion (L1=5, LE=10 dias",
+    "   habiles; LP/LQ/LR mayor); foro de consultas muy corto; publicacion en periodo de baja actividad",
+    "   (septiembre, enero-febrero, segunda quincena de diciembre); visita a terreno con aviso insuficiente.",
+    "2. PRESUPUESTO: presupuesto sin respaldo de mercado; por debajo de referencias; contrato largo (>12 meses)",
+    "   sin reajuste de precios.",
+    "3. ITEMIZADO Y OFERTA ECONOMICA: itemizado muy extenso evaluado item por item con banda de admisibilidad",
+    "   de precios (fuera de banda = inadmisible); banda mas estrecha que [50% bajo, 10% sobre] el referencial;",
+    "   sin mecanismo para subsanar errores evidentes de precio; valores referenciales no publicados.",
+    "4. CRITERIOS DE EVALUACION: ponderaciones que no suman 100%; precio pondera en exceso; criterios que no",
+    "   discriminan; criterios subjetivos sin rubrica; puntaje minimo de adjudicacion alto junto con muchos",
+    "   requisitos excluyentes; factor geografico con salto de puntaje excesivo (comuna sede vs resto).",
+    "5. ADMISIBILIDAD Y REQUISITOS MINIMOS: requisitos que se acreditan 'con documentacion de respaldo' sin",
+    "   una lista literal de que documento acredita cada uno; exigir equipo/insumo compatible con 'todas las",
+    "   marcas' cuando el objeto abarca un parque muy diverso; certificaciones sin decir cual se acepta;",
+    "   demasiados requisitos excluyentes; garantia de seriedad desproporcionada; restriccion territorial del",
+    "   oferente o su instalacion.",
+    "6. EXPERIENCIA: acreditacion solo por un medio de prueba (por ejemplo solo OC en 'recepcion conforme' o",
+    "   certificado firmado por el mandante); monto minimo por contrato que excluye pymes; ventana temporal",
+    "   muy corta.",
+    "7. ESPECIFICACIONES TECNICAS: especificaciones que apuntan a una marca sin 'o equivalente'; codigo de",
+    "   rubro / ONU que no representa el objeto; plazos de ejecucion poco realistas; multas desproporcionadas;",
+    "   una norma tecnica exigida por numero Y ano de version (ej. 'NCh 1796 of. 92') sin 'o su version",
+    "   vigente / la que la reemplace' -> el mercado tiene certificados de la version actual y ninguno",
+    "   cumple (nivel ALTO si es requisito de admisibilidad); dos o mas certificaciones acumulativas como",
+    "   requisito minimo cuando el mercado suele certificar solo una.",
+    "8. FORO Y PROCESO: modificacion de bases sin prorroga del cierre; comision evaluadora incompleta.",
+    "9. CONTRATO: plazo de pago sobre 30 dias; combinacion sin anticipos + garantias altas + sin reajuste;",
+    "   contradicciones internas del texto (por ejemplo mencionar el cobro de una garantia de seriedad que",
+    "   las mismas bases declararon NO exigida).",
+    "",
+    "REVISA LAS NUEVE FAMILIAS UNA POR UNA contra el texto; no te detengas en los 3 o 4 problemas mas",
+    "visibles. Un borrador con problemas suele tener entre 6 y 12 hallazgos reales. En licitaciones de obra",
+    "de SMAPA / Municipalidad de Maipu revisa SIEMPRE, y repórtalos si aplican:",
+    "- si la experiencia y el 'monto total contratado' se acreditan SOLO con certificado o acta firmada por",
+    "  el mandante, o con orden de compra en estado 'recepcion conforme': ese unico medio de prueba deja",
+    "  fuera a quien hizo obras similares pero no tiene ese papel exacto (nivel alto si es factor",
+    "  excluyente o de la etapa de habilitacion);",
+    "- si NO se publican el presupuesto detallado ni los precios unitarios de referencia por partida, pero",
+    "  hay un tope global con inadmisibilidad si se supera;",
+    "- si algun requisito minimo de admisibilidad excluye de plano y NO es subsanable (por ejemplo un anexo",
+    "  de 'toma de conocimiento' o 'visita' obligatorio);",
+    "- si el factor precio pondera 80% o mas, o si se castiga como oferta 'temeraria/riesgosa' una",
+    "  diferencia de 50% respecto de la siguiente oferta;",
+    "- si la evaluacion tiene una etapa de habilitacion con nota minima excluyente antes de abrir el precio;",
+    "- si el plazo de EJECUCION DE LA OBRA (no el plazo total del contrato) es corto para el alcance real",
+    "  descrito en las bases tecnicas y el itemizado;",
+    "- si el giro / actividad economica del SII se exige 'acorde al objeto' como causal de inadmisibilidad.",
+    "Si identificas mas de 8 problemas reales, reportalos TODOS; no recortes la lista a los mas llamativos.",
+    "",
+    "CALIBRACION DEL NIVEL (no todo es 'alto'):",
+    "- La causal de inadmisibilidad por discordancia u omision en el anexo economico, sin subsanacion de",
+    "  errores de precio, es nivel MEDIO por si sola. Sube a ALTO solo si ademas el itemizado tiene mas de",
+    "  ~50 partidas evaluadas item por item, o hay banda de admisibilidad de precios, o se exige 'sin",
+    "  redondeos' sobre una oferta en UF.",
+    "- La experiencia acreditable por un unico medio de prueba (OC 'recepcion conforme' / certificado del",
+    "  mandante) es MEDIO por si sola. Sube a ALTO solo si la experiencia pondera 40% o mas, o si hay una",
+    "  etapa de habilitacion eliminatoria.",
+    "- Un puntaje minimo de adjudicacion, por si solo, NO es un hallazgo; solo lo es si se combina con",
+    "  muchos requisitos excluyentes o con una etapa de habilitacion eliminatoria.",
+    "- Si las bases tienen anticipo, reajuste, foro con consultas y plazo de publicacion suficiente, NO los",
+    "  marques como problema.",
+    "",
+    "Para cada hallazgo cita TEXTUALMENTE la frase de las bases que lo sustenta (campo 'evidencia'); si el",
+    "problema es una omision, escribe 'No aparece en las bases'. Indica el documento donde esta. En 'norma'",
+    "cita el articulo concreto cuando exista (por ejemplo 'Art. 6 Ley 19.886', 'Art. 56 DS 661/2024',",
+    "'Art. 13 Ley 19.880') y solo si no hay uno claro nombra el principio.",
+    "",
+    "Responde UNICAMENTE con un objeto JSON valido (sin markdown, sin explicacion fuera del JSON) con esta forma:",
+    '{',
+    '  "identificacion": { "numero": "", "tipo_licitacion": "", "objeto": "", "monto_estimado_clp": null, "duracion": "", "fechas": "", "criterios_ponderaciones": "" },',
+    '  "semaforo": "alto|medio|bajo|ok",',
+    '  "resumen": "1 a 3 frases con el diagnostico general",',
+    '  "hallazgos": [ { "id": "R-XX o vacio", "titulo": "", "nivel": "alto|medio|informativo", "causa": "por que esto puede dejar la licitacion desierta", "evidencia": "cita textual o \'No aparece en las bases\'", "documento": "", "norma": "articulo o principio", "recomendacion": "que cambiar antes de publicar" } ],',
+    '  "revision_manual": [ "puntos que un abogado o la comision deben revisar a mano" ]',
+    '}'
+  ].join("\n");
+
+  function fileToBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var rd = new FileReader();
+      rd.onload = function () {
+        var s = String(rd.result);
+        var i = s.indexOf(",");
+        resolve(i >= 0 ? s.slice(i + 1) : s);
+      };
+      rd.onerror = function () { reject(new Error("No se pudo leer " + file.name)); };
+      rd.readAsDataURL(file);
+    });
+  }
+  function extraerJSON(txt) {
+    var t = String(txt).trim();
+    t = t.replace(/^```(json)?/i, "").replace(/```$/i, "").trim();
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a >= 0 && b > a) t = t.slice(a, b + 1);
+    return JSON.parse(t);
+  }
+
+  var IA_FILES = [];
+  var ULTIMO_IA = null;
+
+  function iaComoTexto(d) {
+    d = d || {};
+    var id = d.identificacion || {};
+    var L = [];
+    L.push("INFORME DE REVISIÓN PREVIA DE BASES — generado con IA");
+    L.push("Licitación: " + (document.getElementById("id_licitacion").value || id.numero || "(sin número)"));
+    L.push("Proveedor: " + PROVEEDORES[iaProveedor()].nombre + " · Modelo: " + modeloElegido());
+    L.push("Generado: " + new Date().toLocaleString("es-CL"));
+    L.push("Semáforo: " + (d.semaforo || "—"));
+    L.push("");
+    if (d.resumen) { L.push("RESUMEN"); L.push(d.resumen); L.push(""); }
+    L.push("DATOS EXTRAÍDOS DE LAS BASES");
+    L.push("- Tipo: " + (id.tipo_licitacion || "—"));
+    L.push("- Objeto: " + (id.objeto || "—"));
+    L.push("- Monto estimado (CLP): " + (id.monto_estimado_clp != null ? id.monto_estimado_clp : "—"));
+    L.push("- Duración: " + (id.duracion || "—"));
+    L.push("- Fechas: " + (id.fechas || "—"));
+    L.push("- Criterios y ponderaciones: " + (id.criterios_ponderaciones || "—"));
+    L.push("");
+    L.push("POSIBLES CAUSAS DE DESERCIÓN");
+    (d.hallazgos || []).forEach(function (h, i) {
+      L.push("");
+      L.push((i + 1) + ". [" + String(h.nivel || "").toUpperCase() + "] " + (h.id ? h.id + " · " : "") + (h.titulo || ""));
+      L.push("   Causa: " + (h.causa || ""));
+      if (h.evidencia) L.push("   Evidencia" + (h.documento ? " (" + h.documento + ")" : "") + ": " + h.evidencia);
+      if (h.norma) L.push("   Norma: " + h.norma);
+      L.push("   Recomendación: " + (h.recomendacion || ""));
+    });
+    L.push("");
+    L.push("REVISIÓN MANUAL RECOMENDADA");
+    (d.revision_manual || []).forEach(function (x) { L.push("- " + x); });
+    return L.join("\n");
+  }
+  function descargarTexto(nombre, contenido, tipo) {
+    var blob = new Blob([contenido], { type: tipo || "text/plain;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  document.getElementById("btn-ia-descargar").addEventListener("click", function () {
+    if (!ULTIMO_IA) return;
+    var base = "informe-ia-" + (document.getElementById("id_licitacion").value || "sin-numero").replace(/[^\w.-]+/g, "_");
+    descargarTexto(base + ".json", JSON.stringify(ULTIMO_IA, null, 2), "application/json");
+    descargarTexto(base + ".txt", iaComoTexto(ULTIMO_IA));
+  });
+
+  document.getElementById("ia_files").addEventListener("change", function (e) {
+    IA_FILES = [].slice.call(e.target.files || []);
+    var total = IA_FILES.reduce(function (a, f) { return a + f.size; }, 0);
+    var mb = (total / 1048576).toFixed(1);
+    var el = document.getElementById("ia_lista");
+    if (!IA_FILES.length) { el.textContent = ""; return; }
+    el.textContent = IA_FILES.length + " archivo(s), " + mb + " MB en total" + (total > 20 * 1048576 ? " — demasiado peso: reduce a menos de 20 MB" : "");
+  });
+
+  document.getElementById("ia_proveedor").addEventListener("change", function () {
+    try { localStorage.setItem(IA_PROV_STORE, this.value || ""); } catch (e) {}
+    aplicarProveedor();
+  });
+  document.getElementById("ia_key").addEventListener("change", function () {
+    try { localStorage.setItem(PROVEEDORES[iaProveedor()].keyStore, this.value || ""); } catch (e) {}
+  });
+  document.getElementById("ia_modelo").addEventListener("change", function () {
+    guardarModeloProveedor(iaProveedor(), this.value || "");
+  });
+  document.getElementById("ia_modelo_otro").addEventListener("change", function () {
+    try { localStorage.setItem(IA_MODELO_OTRO_STORE, this.value || ""); } catch (e) {}
+  });
+
+  document.getElementById("btn-ia-modelos").addEventListener("click", function () {
+    var btn = this;
+    var prov = iaProveedor();
+    var key = (document.getElementById("ia_key").value || "").trim();
+    var out = document.getElementById("ia_modelos_lista");
+    if (!key) { out.textContent = "Ingresa primero la clave de API."; return; }
+    btn.disabled = true;
+    out.textContent = "Consultando modelos disponibles...";
+    var p;
+    if (prov === "google") {
+      p = fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=" + encodeURIComponent(key))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j.error) throw new Error(j.error.message || ("HTTP " + (j.error.code || "?")));
+          return (j.models || [])
+            .filter(function (m) { return (m.supportedGenerationMethods || []).indexOf("generateContent") >= 0; })
+            .map(function (m) { return String(m.name || "").replace(/^models\//, ""); })
+            .filter(function (n) { return /^gemini/i.test(n); });
+        });
+    } else {
+      p = fetch("https://api.anthropic.com/v1/models?limit=100", {
+        headers: {
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j.error) throw new Error(j.error.message || "error");
+          return (j.data || []).map(function (m) { return m.id; });
+        });
+    }
+    p.then(function (nombres) {
+      if (!nombres.length) { out.textContent = "El proveedor no devolvió modelos utilizables."; return; }
+      out.innerHTML = "Modelos que sirven para el análisis (haz clic para usarlo):<br>" +
+        nombres.map(function (n) {
+          return "<button type='button' class='mini' data-modelo='" + esc(n) + "' style='margin:3px 4px 0 0;'>" + esc(n) + "</button>";
+        }).join("");
+      [].slice.call(out.querySelectorAll("button[data-modelo]")).forEach(function (b) {
+        b.addEventListener("click", function () {
+          var mo = document.getElementById("ia_modelo_otro");
+          mo.value = b.getAttribute("data-modelo");
+          try { localStorage.setItem(IA_MODELO_OTRO_STORE, mo.value); } catch (e) {}
+          out.innerHTML += "<br>Usando <code>" + esc(mo.value) + "</code>.";
+        });
+      });
+    }).catch(function (e) {
+      out.textContent = "No se pudo obtener la lista: " + e.message;
+    }).then(function () { btn.disabled = false; });
+  });
+
+  function iaEstado(msg) { document.getElementById("ia_estado").textContent = msg || ""; }
+
+  function promptUsuario(archivos) {
+    var idLic = document.getElementById("id_licitacion").value || "(sin número)";
+    var ctx = document.getElementById("ia_contexto").value || "(sin contexto adicional)";
+    return "Numero de la licitacion: " + idLic + "\nContexto adicional: " + ctx +
+      "\n\nArchivos adjuntos (en orden): " + archivos.map(function (a) { return a.name; }).join(", ") +
+      "\n\nAnaliza el borrador y devuelve SOLO el JSON pedido.";
+  }
+
+  function pedirAnthropic(key, modelo, archivos) {
+    var contenido = archivos.map(function (a) {
+      return { type: "document", source: { type: "base64", media_type: "application/pdf", data: a.data } };
+    });
+    contenido.push({ type: "text", text: promptUsuario(archivos) });
+    return {
+      url: "https://api.anthropic.com/v1/messages",
+      options: {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: modelo, max_tokens: 16000, system: SYS_IA,
+          messages: [{ role: "user", content: contenido }]
+        })
+      },
+      leerTexto: function (j) {
+        return (j.content || []).filter(function (b) { return b.type === "text"; })
+          .map(function (b) { return b.text; }).join("\n");
+      },
+      leerError: function (j, status) { return (j && j.error && j.error.message) || ("HTTP " + status); }
+    };
+  }
+
+  function pedirGoogle(key, modelo, archivos) {
+    var parts = archivos.map(function (a) {
+      return { inline_data: { mime_type: "application/pdf", data: a.data } };
+    });
+    parts.push({ text: promptUsuario(archivos) });
+    return {
+      url: "https://generativelanguage.googleapis.com/v1beta/models/" +
+        encodeURIComponent(modelo) + ":generateContent?key=" + encodeURIComponent(key),
+      options: {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYS_IA }] },
+          contents: [{ role: "user", parts: parts }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 24000, responseMimeType: "application/json" }
+        })
+      },
+      leerTexto: function (j) {
+        if (j.promptFeedback && j.promptFeedback.blockReason) {
+          throw new Error("Gemini bloqueó la solicitud (" + j.promptFeedback.blockReason + ").");
+        }
+        var c = (j.candidates || [])[0];
+        if (!c) throw new Error("Gemini no devolvió ninguna respuesta.");
+        var t = ((c.content && c.content.parts) || []).map(function (p) { return p.text || ""; }).join("\n");
+        if (c.finishReason && c.finishReason !== "STOP" && !t) {
+          throw new Error("Gemini terminó sin texto (motivo: " + c.finishReason + ").");
+        }
+        return t;
+      },
+      leerError: function (j, status) { return (j && j.error && j.error.message) || ("HTTP " + status); }
+    };
+  }
+
+  function esReintentable(status, j) {
+    if ([500, 502, 503, 504].indexOf(status) >= 0) return true;
+    var msg = String((j && j.error && j.error.message) || "");
+    return /high demand|overloaded|temporarily|try again later|unavailable|internal error|resource has been exhausted/i.test(msg);
+  }
+  function enviarConReintentos(req, maxIntentos) {
+    var intento = 0;
+    function ir() {
+      intento++;
+      return fetch(req.url, req.options)
+        .then(function (resp) {
+          return resp.json().then(function (j) { return { ok: resp.ok, status: resp.status, j: j, req: req }; });
+        })
+        .then(function (r) {
+          if (!r.ok && esReintentable(r.status, r.j) && intento < maxIntentos) {
+            var espera = 5000 * intento;
+            iaEstado("El modelo está ocupado (" + (r.status || "error") + "). Reintento " +
+              (intento + 1) + "/" + maxIntentos + " en " + (espera / 1000) + " s...");
+            return new Promise(function (res) { setTimeout(res, espera); }).then(ir);
+          }
+          return r;
+        });
+    }
+    return ir();
+  }
+
+  document.getElementById("btn-ia").addEventListener("click", function () {
+    var btn = this;
+    var prov = iaProveedor();
+    var cfg = PROVEEDORES[prov];
+    var key = (document.getElementById("ia_key").value || "").trim();
+    var modelo = modeloElegido();
+    if (!key) { alert("Ingresa tu " + cfg.keyLabel.toLowerCase() + "."); return; }
+    if (!IA_FILES.length) { alert("Carga al menos un PDF de las bases."); return; }
+    var total = IA_FILES.reduce(function (a, f) { return a + f.size; }, 0);
+    if (total > 20 * 1048576) { alert("Los archivos suman más de 20 MB. El PDF se infla al enviarlo y hay un límite por solicitud; reduce la cantidad o comprime los PDF."); return; }
+
+    btn.disabled = true;
+    iaEstado("Leyendo archivos...");
+    Promise.all(IA_FILES.map(function (f) { return fileToBase64(f).then(function (d) { return { name: f.name, data: d }; }); }))
+      .then(function (archivos) {
+        iaEstado("Enviando a " + cfg.nombre + " y esperando el análisis (puede tardar hasta 1-2 minutos)...");
+        var req = prov === "anthropic" ? pedirAnthropic(key, modelo, archivos) : pedirGoogle(key, modelo, archivos);
+        return enviarConReintentos(req, 3);
+      })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.req.leerError(r.j, r.status));
+        var txt = r.req.leerTexto(r.j);
+        var data;
+        try { data = extraerJSON(txt); }
+        catch (e) { throw new Error("La IA no devolvió un JSON válido. Respuesta:\n\n" + String(txt).slice(0, 1200)); }
+        renderIA(data);
+        iaEstado("Listo.");
+        document.getElementById("informe").scrollIntoView({ behavior: "smooth", block: "start" });
+      })
+      .catch(function (err) {
+        iaEstado("");
+        var m = String(err.message || "");
+        var pistas =
+          "\n\nComprueba: la clave de API, la conexión a internet, y que los PDF no superen 20 MB.";
+        if (/no longer available|not found|not supported|is not a valid|unknown model|modelo/i.test(m)) {
+          pistas += "\n\nParece un problema con el nombre del modelo: el proveedor pudo haberlo cambiado. " +
+            "Escribe otro identificador en el campo \"Otro modelo\" (por ejemplo el que sugiera el mensaje de error).";
+        }
+        if (/failed to fetch|cors|networkerror/i.test(m)) {
+          pistas += "\n\nSi el error menciona CORS o 'Failed to fetch', tu red o el navegador pueden estar " +
+            "bloqueando " + cfg.host + " al abrir el archivo con doble clic. Prueba sirviendo la carpeta con un servidor local.";
+        }
+        if (/\b429\b|quota|rate limit/i.test(m)) {
+          pistas += "\n\nUn error 429 en el nivel gratuito de Gemini significa que superaste la cuota por minuto " +
+            "o por día: espera un momento y reintenta, o cambia a un modelo más liviano.";
+        }
+        if (/high demand|overloaded|try again later|unavailable|\b503\b/i.test(m)) {
+          pistas += "\n\nEl modelo está sobrecargado en el servidor del proveedor (no es un problema tuyo). " +
+            "La app ya reintentó 3 veces. Espera unos minutos y vuelve a intentar, o prueba otro modelo " +
+            "en el campo \"Otro modelo\" (por ejemplo gemini-3.6-pro).";
+        }
+        alert("No se pudo completar el análisis con IA.\n\n" + m + pistas);
+      })
+      .then(function () { btn.disabled = false; });
+  });
+
+  function renderIA(data) {
+    ULTIMO_IA = data;
+    document.getElementById("informe-vacio").hidden = true;
+    var cont = document.getElementById("informe-contenido");
+    cont.hidden = false;
+    document.getElementById("barra-informe").hidden = false;
+    document.getElementById("btn-ia-descargar").hidden = false;
+
+    var mapSem = { alto: "riesgo", medio: "alerta", bajo: "info", ok: "ok" };
+    var mapTxt = {
+      alto: "Riesgo alto de quedar desierta", medio: "Riesgo medio: conviene corregir antes de publicar",
+      bajo: "Riesgo bajo: solo observaciones informativas", ok: "Sin observaciones relevantes"
+    };
+    var sem = (data.semaforo || "medio").toLowerCase();
+    var id = data.identificacion || {};
+    var hs = (data.hallazgos || []).slice().sort(function (a, b) {
+      var o = { alto: 0, medio: 1, informativo: 2 };
+      return (o[(a.nivel || "").toLowerCase()] || 3) - (o[(b.nivel || "").toLowerCase()] || 3);
+    });
+    var cuenta = { alto: 0, medio: 0, informativo: 0 };
+    hs.forEach(function (h) { var n = (h.nivel || "").toLowerCase(); if (cuenta[n] != null) cuenta[n]++; });
+
+    var html = "";
+    html += "<p class='nota'><strong>Licitación:</strong> " + esc(document.getElementById("id_licitacion").value || id.numero || "(sin número)") + "</p>";
+    html += "<div class='semaforo " + (mapSem[sem] || "alerta") + "'>" + esc(mapTxt[sem] || "Revisión con IA") +
+      "<small>Generado con IA: " + new Date().toLocaleString("es-CL") +
+      " · " + esc(PROVEEDORES[iaProveedor()].nombre) + " · Modelo: " + esc(modeloElegido()) +
+      " · Hallazgos: " + cuenta.alto + " alto(s), " + cuenta.medio + " medio(s), " + cuenta.informativo + " informativo(s)</small></div>";
+
+    if (data.resumen) html += "<p>" + esc(data.resumen) + "</p>";
+
+    html += "<h3 class='sub'>Datos extraídos de las bases</h3><div class='hallazgo informativo'><dl>" +
+      "<dt>Tipo</dt><dd>" + esc(id.tipo_licitacion || "—") + "</dd>" +
+      "<dt>Objeto</dt><dd>" + esc(id.objeto || "—") + "</dd>" +
+      "<dt>Monto estimado</dt><dd>" + esc(id.monto_estimado_clp != null ? id.monto_estimado_clp : "—") + "</dd>" +
+      "<dt>Duración</dt><dd>" + esc(id.duracion || "—") + "</dd>" +
+      "<dt>Fechas</dt><dd>" + esc(id.fechas || "—") + "</dd>" +
+      "<dt>Criterios y ponderaciones</dt><dd>" + esc(id.criterios_ponderaciones || "—") + "</dd>" +
+      "</dl></div>";
+
+    html += "<h3 class='sub'>Posibles causas de deserción</h3>";
+    if (!hs.length) html += "<p class='nota'>La IA no identificó hallazgos.</p>";
+    hs.forEach(function (h) {
+      var n = (h.nivel || "informativo").toLowerCase();
+      if (["alto", "medio", "informativo"].indexOf(n) < 0) n = "informativo";
+      html += "<div class='hallazgo " + n + "'><h3><span class='tag " + n + "'>" + n.toUpperCase() + "</span>" +
+        (h.id ? esc(h.id) + " · " : "") + esc(h.titulo || "(sin título)") + "</h3><dl>" +
+        "<dt>Posible causa de deserción</dt><dd>" + esc(h.causa || "") + "</dd>" +
+        (h.evidencia ? "<dt>Detectado en el texto" + (h.documento ? " (" + esc(h.documento) + ")" : "") + "</dt><dd class='cita'>" + esc(h.evidencia) + "</dd>" : "") +
+        (h.norma ? "<dt>Norma / fundamento</dt><dd>" + esc(h.norma) + "</dd>" : "") +
+        "<dt>Recomendación</dt><dd>" + esc(h.recomendacion || "") + "</dd></dl></div>";
+    });
+
+    var rm = data.revision_manual || [];
+    if (rm.length) {
+      html += "<h3 class='sub'>Revisión manual recomendada</h3><ul>";
+      rm.forEach(function (x) { html += "<li>" + esc(x) + "</li>"; });
+      html += "</ul>";
+    }
+
+    html += "<p class='nota' style='margin-top:16px;'>Informe generado por IA a partir de los PDF cargados. Verifica los hallazgos contra el texto de las bases antes de decidir.</p>";
+    cont.innerHTML = html;
+  }
+
+  /* ---------- inicio ---------- */
+  var f = leerJSON(STORE_FORM);
+  if (f) { aplicarValores(f); } else { setCriterios([]); }
+  var d = leerJSON(STORE_DOCS); if (d) aplicarDocs(d);
+  var id = null; try { id = localStorage.getItem(STORE_ID); } catch (e) {}
+  if (id) document.getElementById("id_licitacion").value = id;
+  try {
+    var pv = localStorage.getItem(IA_PROV_STORE);
+    if (pv && PROVEEDORES[pv]) document.getElementById("ia_proveedor").value = pv;
+    var mOtro = localStorage.getItem(IA_MODELO_OTRO_STORE);
+    if (mOtro) document.getElementById("ia_modelo_otro").value = mOtro;
+  } catch (e) {}
+  aplicarProveedor();
+  sumaCriterios();
+  (function () {
+    var casos = getCasos(), demo = REGLAS.casosDemo || {}, cambio = false;
+    Object.keys(demo).forEach(function (k) { if (!casos[k]) { casos[k] = demo[k]; cambio = true; } });
+    if (cambio) setCasos(casos);
+  })();
+  refrescarLista();
+})();
+</script>
+</body>
+</html>
