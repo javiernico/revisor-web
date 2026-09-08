@@ -627,7 +627,7 @@
   function semaforo(h) {
     var n = h.map(function (x) { return x.nivelResuelto; });
     if (n.indexOf("alto") >= 0) return { clase: "riesgo", txt: "Riesgo alto de quedar desierta" };
-    if (n.indexOf("medio") >= 0) return { clase: "alerta", txt: "Riesgo medio: hay aspectos que conviene corregir antes de publicar" };
+    if (n.indexOf("medio") >= 0) return { clase: "alerta", txt: "Riesgo medio: se puede publicar; conviene mejorar los puntos marcados" };
     if (n.indexOf("informativo") >= 0) return { clase: "info", txt: "Riesgo bajo: solo observaciones informativas" };
     return { clase: "ok", txt: "Sin observaciones de las reglas revisadas" };
   }
@@ -962,14 +962,33 @@
     "- NO afirmes que una norma tecnica esta 'derogada' o 'reemplazada' salvo que estes seguro. Ante la duda,",
     "  nivel 'informativo' con recomendacion 'verificar la vigencia de la norma citada y agregar o la version",
     "  vigente que la reemplace'.",
+    "- CERTIFICACIONES Y NORMAS TECNICAS SON UN RIESGO PRINCIPAL DE DESERCION; no lo minimices. Si las bases",
+    "  exigen como condicion de admisibilidad un certificado de producto bajo una norma tecnica chilena",
+    "  (NCh ...) para un articulo/modelo especifico, o dos o mas certificaciones acumulativas, o un plazo muy",
+    "  corto para obtenerlo: nivel 'medio' de partida, y 'alto' si es requisito de admisibilidad SIN aceptar",
+    "  norma equivalente / internacional / 'o la vigente que la reemplace'. Esto es distinto de decir que la",
+    "  norma esta derogada: el problema es que el mercado puede no tener ese certificado exacto a tiempo.",
+    "  Recomendacion tipo: aceptar certificados de norma equivalente o internacional y de la version vigente,",
+    "  y confirmar que existan laboratorios acreditados ante el INN.",
+    "- Plazo de ENTREGA o de EJECUCION corto (p. ej. 10-15 dias habiles por orden de pedido) para bienes que",
+    "  se importan o se fabrican a pedido, mas aun si el volumen total es grande o hay multas altas por",
+    "  atraso: nivel 'medio', 'alto' si es claramente inviable. No lo dejes solo como nota de revision manual.",
     "",
     "COMO ELEGIR EL SEMAFORO GENERAL:",
     "- 'alto'  = hay AL MENOS UN hallazgo de nivel 'alto' segun las reglas de arriba.",
     "- 'medio' = no hay ningun 'alto', pero si uno o mas 'medio' que conviene corregir antes de publicar.",
     "- 'bajo'  = solo hallazgos 'informativo'.",
     "- 'ok'    = no se detectaron problemas dignos de mencion.",
-    "NUNCA pongas 'alto' solo porque haya muchos hallazgos 'medio'. El semaforo debe ser coherente con el",
-    "nivel mas alto de la lista de hallazgos.",
+    "NUNCA pongas 'alto' solo por acumular hallazgos 'medio' cualesquiera. El semaforo es igual al nivel mas",
+    "alto de la lista, CON UNA EXCEPCION: si hay 3 o mas hallazgos 'medio' que son BARRERAS DE ENTRADA",
+    "(certificacion dificil, plazo de entrega/ejecucion corto, experiencia por medio unico, giro del SII como",
+    "causal, tope o banda de precios sin subsanacion) Y al menos uno toca certificacion o plazo tecnico, el",
+    "efecto conjunto puede dejar el proceso desierto: sube el semaforo general a 'alto' y explicalo en el",
+    "'resumen'.",
+    "",
+    "'revision_manual' es SOLO para juicios que dependen de informacion que no tienes (jurisprudencia,",
+    "decision politica, dato de mercado). Si puedes describir un mecanismo concreto que reduce la competencia,",
+    "va en 'hallazgos' con su nivel, NO en 'revision_manual'.",
     "",
     "Para cada hallazgo cita TEXTUALMENTE la frase de las bases que lo sustenta (campo 'evidencia'); si el",
     "problema es una omision, escribe 'No aparece en las bases'. Indica el documento en 'documento'. En",
@@ -1513,7 +1532,7 @@
 
     var mapSem = { alto: "riesgo", medio: "alerta", bajo: "info", ok: "ok" };
     var mapTxt = {
-      alto: "Riesgo alto de quedar desierta", medio: "Riesgo medio: conviene corregir antes de publicar",
+      alto: "Riesgo alto de quedar desierta", medio: "Riesgo medio: se puede publicar; conviene mejorar los puntos marcados",
       bajo: "Riesgo bajo: solo observaciones informativas", ok: "Sin observaciones relevantes"
     };
     var sem = (data.semaforo || "medio").toLowerCase();
