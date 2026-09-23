@@ -1441,29 +1441,72 @@
   }
 
   function esReintentable(status, j) {
-    if ([500, 502, 503, 504].indexOf(status) >= 0) return true;
+    if ([429, 500, 502, 503, 504].indexOf(status) >= 0) return true;
     var msg = String((j && j.error && j.error.message) || "");
-    return /high demand|overloaded|temporarily|try again later|unavailable|internal error|resource has been exhausted/i.test(msg);
+    return /high demand|overloaded|temporarily|try again later|unavailable|internal error|resource has been exhausted|rate limit/i.test(msg);
   }
-  function enviarConReintentos(req, maxIntentos) {
+  // Espera (ms) que el propio servidor sugiere: cabecera Retry-After o RetryInfo de Google.
+  function esperaSugerida(resp, j) {
+    try {
+      var ra = resp && resp.headers && resp.headers.get("retry-after");
+      if (ra) { var s = parseFloat(ra); if (!isNaN(s) && s > 0) return Math.min(s, 60) * 1000; }
+    } catch (e) {}
+    try {
+      var det = (j && j.error && j.error.details) || [];
+      for (var i = 0; i < det.length; i++) {
+        if (det[i] && det[i].retryDelay) {
+          var m = /([\d.]+)s/.exec(det[i].retryDelay);
+          if (m) return Math.min(parseFloat(m[1]), 60) * 1000;
+        }
+      }
+    } catch (e) {}
+    return 0;
+  }
+  function enviarConReintentos(req, maxIntentos, etiqueta) {
     var intento = 0;
     function ir() {
       intento++;
       return fetch(req.url, req.options)
         .then(function (resp) {
-          return resp.json().then(function (j) { return { ok: resp.ok, status: resp.status, j: j, req: req }; });
+          // Leemos como texto y parseamos con cuidado: un 503 a veces no devuelve JSON.
+          return resp.text().then(function (txt) {
+            var j; try { j = JSON.parse(txt); } catch (e) { j = { error: { message: String(txt).slice(0, 300) } }; }
+            return { ok: resp.ok, status: resp.status, j: j, resp: resp, req: req };
+          });
         })
         .then(function (r) {
           if (!r.ok && esReintentable(r.status, r.j) && intento < maxIntentos) {
-            var espera = 5000 * intento;
-            iaEstado("El modelo está ocupado (" + (r.status || "error") + "). Reintento " +
-              (intento + 1) + "/" + maxIntentos + " en " + (espera / 1000) + " s...");
+            // Espera sugerida por el servidor; si no hay, backoff exponencial con jitter.
+            var espera = esperaSugerida(r.resp, r.j);
+            if (!espera) espera = Math.min(2000 * Math.pow(2, intento - 1), 20000) + Math.floor(Math.random() * 1000);
+            iaEstado((etiqueta ? etiqueta + " — el" : "El") + " modelo está ocupado (" + (r.status || "error") +
+              "). Reintento " + (intento + 1) + "/" + maxIntentos + " en " + Math.round(espera / 1000) + " s...", true);
             return new Promise(function (res) { setTimeout(res, espera); }).then(ir);
           }
           return r;
         });
     }
     return ir();
+  }
+  // Prueba el modelo elegido y, si sigue sobrecargado tras los reintentos,
+  // cae automáticamente al siguiente modelo del proveedor.
+  function enviarConFallback(prov, key, modelo, archivos, maxIntentos) {
+    var cfg = PROVEEDORES[prov];
+    var lista = [modelo];
+    (cfg.modelos || []).forEach(function (m) { if (m[0] && m[0] !== modelo) lista.push(m[0]); });
+    var idx = 0;
+    function intentar() {
+      var mod = lista[idx];
+      if (idx > 0) iaEstado("El modelo anterior sigue ocupado. Probando con un modelo alternativo (" + mod + ")...", true);
+      var req = (prov === "anthropic") ? pedirAnthropic(key, mod, archivos) : pedirGoogle(key, mod, archivos);
+      var etiqueta = (idx === 0) ? "" : mod;
+      return enviarConReintentos(req, maxIntentos, etiqueta).then(function (r) {
+        if (!r.ok && esReintentable(r.status, r.j) && idx < lista.length - 1) { idx++; return intentar(); }
+        r.modeloUsado = mod;
+        return r;
+      });
+    }
+    return intentar();
   }
 
   document.getElementById("btn-ia").addEventListener("click", function () {
@@ -1482,8 +1525,7 @@
     prepararArchivos(IA_FILES)
       .then(function (archivos) {
         iaEstado("Enviando a " + cfg.nombre + " y esperando el análisis (puede tardar hasta 1-2 minutos)...", true);
-        var req = prov === "anthropic" ? pedirAnthropic(key, modelo, archivos) : pedirGoogle(key, modelo, archivos);
-        return enviarConReintentos(req, 3);
+        return enviarConFallback(prov, key, modelo, archivos, 4);
       })
       .then(function (r) {
         if (!r.ok) throw new Error(r.req.leerError(r.j, r.status));
@@ -1492,7 +1534,7 @@
         try { data = extraerJSON(txt); }
         catch (e) { throw new Error("La IA no devolvió un JSON válido. Respuesta:\n\n" + String(txt).slice(0, 1200)); }
         renderIA(data);
-        iaEstado("Listo.");
+        iaEstado(r.modeloUsado && r.modeloUsado !== modelo ? "Listo (con el modelo alternativo " + r.modeloUsado + ")." : "Listo.");
         document.getElementById("informe").scrollIntoView({ behavior: "smooth", block: "start" });
       })
       .catch(function (err) {
@@ -1514,8 +1556,9 @@
         }
         if (/high demand|overloaded|try again later|unavailable|\b503\b/i.test(m)) {
           pistas += "\n\nEl modelo está sobrecargado en el servidor del proveedor (no es un problema tuyo). " +
-            "La app ya reintentó 3 veces. Espera unos minutos y vuelve a intentar, o prueba otro modelo " +
-            "en el campo \"Otro modelo\" (por ejemplo gemini-3.6-pro).";
+            "La app reintentó varias veces con espera creciente y probó los modelos alternativos disponibles, " +
+            "y aun así el servicio sigue saturado. Espera unos minutos y vuelve a intentar, o escribe otro " +
+            "modelo en el campo \"Otro modelo\" (por ejemplo gemini-3.6-pro).";
         }
         alert("No se pudo completar el análisis con IA.\n\n" + m + pistas);
       })
